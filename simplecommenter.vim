@@ -207,6 +207,10 @@ fun! s:onelineComment(a,e)
   endif
 endf
 
+aug PythonCommentFix
+  au filetype python :let g:prefer_commentstring
+aug END
+
 com! -range DoComment :cal s:doComment(0,<line1>,<line2>)
 com! -range UnComment :cal s:unComment(<line1>,<line2>)
 com! -range OneLineComment :cal s:onelineComment(<line1>,<line2>)
