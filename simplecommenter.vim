@@ -219,6 +219,10 @@ fun! s:init_python()
   setlocal comments+=s1:\"\"\",ex:\"\"\"
 endf
 
+fun! s:init_perl()
+  setlocal comments=s1:=pod,ex:=cut,:#
+endf
+
 aug PythonCommentFix
   au!
   au filetype python :cal s:init_python()
