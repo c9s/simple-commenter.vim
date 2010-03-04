@@ -9,13 +9,6 @@ Author: Cornelius 林佑安 <cornelius.howl@gmail.com>
 
 Date:   四  3/ 4 14:39:34 2010
 
-Default Mappings
-================
-
-    ,c    Comment
-    ,C    Uncomment
-    ,,    oneline commment toggle
-
 Options
 =======
 
@@ -24,6 +17,14 @@ Options
     let g:block_comment_padding = " "
     let g:scomment_reselect = 1
     let g:scomment_default_mapping = 1
+
+Default Mappings
+================
+
+    ,c    Comment
+    ,C    Uncomment
+    ,,    oneline commment toggle
+
 
 Commands
 ========
