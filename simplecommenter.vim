@@ -20,12 +20,16 @@ if !exists('g:block_comment_padding')
   let g:block_comment_padding = " "
 endif
 
-if !exists('g:comment_reselect')
-  let g:comment_reselect = 1
+if !exists('g:scomment_reselect')
+  let g:scomment_reselect = 1
+endif
+
+if !exists('g:scomment_default_mapping')
+  let g:scomment_default_mapping = 1
 endif
 
 fun! s:select(a,e)
-  if g:comment_reselect
+  if g:scomment_reselect
     normal gv
   endif
 endf
@@ -252,6 +256,9 @@ aug END
 com! -range DoComment :cal s:doComment(0,<line1>,<line2>)
 com! -range UnComment :cal s:unComment(<line1>,<line2>)
 com! -range OneLineComment :cal s:onelineComment(<line1>,<line2>)
-map <silent>   ,c    :DoComment<CR>
-map <silent>   ,C    :UnComment<CR>
-map <silent>   ,,    :OneLineComment<CR>
+
+if g:scomment_default_mapping
+  map <silent>   ,c    :DoComment<CR>
+  map <silent>   ,C    :UnComment<CR>
+  map <silent>   ,,    :OneLineComment<CR>
+endif

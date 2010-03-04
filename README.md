@@ -16,6 +16,15 @@ Mappings
     ,C    Uncomment
     ,,    oneline commment toggle
 
+Options
+=======
+
+    let g:prefer_commentstring = 1
+    let g:oneline_comment_padding = ' '
+    let g:block_comment_padding = " "
+    let g:scomment_reselect = 1
+    let g:scomment_default_mapping = 1
+
 Commands
 ========
 
