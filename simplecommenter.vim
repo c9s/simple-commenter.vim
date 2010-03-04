@@ -17,7 +17,7 @@ if !exists('g:oneline_comment_padding')
 endif
 
 if !exists('g:block_comment_padding')
-  let g:block_comment_padding = ' '
+  let g:block_comment_padding = "\n"
 endif
 
 fun! s:ensureOnelineBlock(pattern,a,e)
@@ -106,17 +106,18 @@ fun! s:doComment(force_oneline,a,e)
 
   " has comment start mark and end mark
   let line = mark1 .g:block_comment_padding . getline(a:a)
-  cal setline(a:a,line)
+  cal setline(a:a,split(line,"\n"))
 
   let line = getline(a:e) . g:block_comment_padding . mark2
-  cal setline(a:e,line)
+  cal setline(a:e,split(line,"\n"))
 endf
 
 
 
 fun! s:_unComment(m1,m2,a,e)
-  let mark1 = escape( a:m1 , '.*/!' )
-  let mark2 = escape( a:m2 , '.*/!' )
+
+  let mark1 = s:escape_cm( a:m1 )
+  let mark2 = s:escape_cm( a:m2 )
 
   let line1 = getline(a:a)
   let line2 = getline(a:e)
@@ -148,6 +149,7 @@ fun! s:unComment(a,e)
   let onlyoneline = strlen(m1)==0 && strlen(m2)==0 
         \ && (strlen(s1) || len(css)==1)
 
+
   if len(css) == 2
     let succ =  s:_unComment(css[0],css[1],a:a,a:e)
     if succ 
@@ -164,30 +166,35 @@ fun! s:unComment(a,e)
 
   if g:prefer_commentstring && len(css) == 1
     " single comment mark
-    let succ = s:ensureOnelineBlock( '^\s*' . css[0] . g:oneline_comment_padding,a:a,a:e)
+    let succ = s:ensureOnelineBlock( '^\s*' . s:escape_cm(css[0]) . g:oneline_comment_padding,a:a,a:e)
     if succ
-      cal s:trimCommentLines( '^\s*' . css[0] . g:oneline_comment_padding , a:a , a:e )
+      cal s:trimCommentLines( '^\s*' . s:escape_cm(css[0]) . g:oneline_comment_padding , a:a , a:e )
       return
     endif
   endif
 
   " pair comment mark not found , try to uncomment oneline mark
   if strlen(s1) > 0
-    let succ = s:ensureOnelineBlock( '^\s*'. s1 . g:oneline_comment_padding ,a:a,a:e)
+    let succ = s:ensureOnelineBlock( '^\s*'. s:escape_cm(s1) . g:oneline_comment_padding ,a:a,a:e)
     if succ 
-      cal s:trimCommentLines( '^\s*' . s1 . g:oneline_comment_padding , a:a , a:e )
+      cal s:trimCommentLines( '^\s*' . s:escape_cm(s1) . g:oneline_comment_padding , a:a , a:e )
       return
     endif
   endif
 
   if len(css) == 1
     " single comment mark
-    let succ = s:ensureOnelineBlock( '^\s*' . css[0] . g:oneline_comment_padding,a:a,a:e)
+    let succ = s:ensureOnelineBlock( '^\s*' . s:escape_cm(css[0]) . g:oneline_comment_padding,a:a,a:e)
     if succ
-      cal s:trimCommentLines( '^\s*' . css[0] . g:oneline_comment_padding , a:a , a:e )
+      cal s:trimCommentLines( '^\s*' . s:escape_cm(css[0]) . g:oneline_comment_padding , a:a , a:e )
       return
     endif
   endif
+endf
+
+
+fun! s:escape_cm(mark)
+  return escape( a:mark , '.*/!"' )
 endf
 
 " should also support comment toggle.
@@ -196,19 +203,24 @@ fun! s:onelineComment(a,e)
   let css = split(&commentstring,'%s')
   let [m1,m2,s1] = s:getCommentMarks()
 
-  if strlen(s1) == 0 && len(css) == 2
-    let mark = css[0]
-  endif
-
-  if getline(a:a) =~ '^\s*' . mark
+  if getline(a:a) =~ '^\s*' . s:escape_cm(css[0])
+        \ || strlen(s1) > 0 && getline(a:a) =~ '^\s*' . s:escape_cm(s1)
+        \ || strlen(m1) > 0 && getline(a:a) =~ '^\s*' . s:escape_cm(m1)
     cal s:unComment(a:a,a:e)
   else
     cal s:doComment(1,a:a,a:e)
   endif
 endf
 
+
+fun! s:init_python()
+  let g:prefer_commentstring = 1
+  setlocal comments=s1:\"\"\",ex:\"\"\"
+endf
+
 aug PythonCommentFix
-  au filetype python :let g:prefer_commentstring = 1
+  au!
+  au filetype python :cal s:init_python()
 aug END
 
 com! -range DoComment :cal s:doComment(0,<line1>,<line2>)
