@@ -16,14 +16,26 @@ if !exists('g:oneline_comment_padding')
   let g:oneline_comment_padding = ' '
 endif
 
-fun! s:ensureOnelineBlock(mark,a,e)
+if !exists('g:block_comment_padding')
+  let g:block_comment_padding = ' '
+endif
+
+fun! s:ensureOnelineBlock(pattern,a,e)
   let succ = 1
   for i in range(a:a,a:e)
-    if getline(i) !~ '^\s*' . a:mark
+    if getline(i) !~ a:pattern
       let succ = 0
     endif
   endfor
   return succ
+endf
+
+
+fun! s:trimCommentLines(pattern,a,e)
+  for i in range(a:a,a:e)
+    let line = substitute(getline(i),a:pattern,'','')
+    cal setline(i,line)
+  endfor
 endf
 
 fun! s:getCommentMarks()
@@ -47,44 +59,6 @@ fun! s:getCommentMarks()
 endf
 
 fun! s:doComment(force_oneline,a,e)
-  let cs = &commentstring
-  let css = split( cs , '%s' )
-
-  let [mark1,mark2,oneline_mark] = s:getCommentMarks()
-  if len(css) == 1 
-    if strlen(mark1) > 0 && strlen(mark2) > 0
-      let css = [ mark1 , mark2 ]
-    endif
-  endif
-
-  if strlen(oneline_mark) > 0
-    let oneline_mark = oneline_mark . '%s'
-  elseif strlen(oneline_mark) == 0 && len(css) == 1
-    let oneline_mark = css[0]
-  endif
-
-  if a:force_oneline && strlen(oneline_mark) > 0 
-    " force single comment mark from 'comments' options
-    for i in range(a:a,a:e)
-      cal setline(i,printf( oneline_mark , getline(i) ))
-    endfor
-  elseif len(css) == 2
-    " has comment start mark and end mark
-    let line = css[0] . getline(a:a)
-    cal setline(a:a,line)
-
-    let line = getline(a:e) . css[1]
-    cal setline(a:e,line)
-  elseif len(css) == 1 
-    " single comment mark
-    for i in range(a:a,a:e)
-      let line = printf(cs,getline(i))
-      cal setline(i,line)
-    endfor
-  endif
-endf
-
-fun! s:doComment(force_oneline,a,e)
   " case:
   "     oneline comment mark only. (from comments 
   "             or commentstring)
@@ -101,7 +75,10 @@ fun! s:doComment(force_oneline,a,e)
   let [m1,m2,s1] = s:getCommentMarks()
 
   let onlyoneline = strlen(m1)==0 && strlen(m2)==0 
-        \ && (strlen(s1) || len(css)==1)
+        \ && (strlen(s1)>0 || len(css)==1)
+
+  let onlyblock   = strlen(m1)>0 && strlen(m2)>0
+        \ && (strlen(s1)==0 || len(css)==2)
 
   if a:force_oneline || onlyoneline 
     let mark = ''
@@ -113,13 +90,13 @@ fun! s:doComment(force_oneline,a,e)
     endif
     if strlen(mark) > 0
       for i in range(a:a,a:e)
-        cal setline(i, mark . ' ' . getline(i) )
+        cal setline(i, mark . g:oneline_comment_padding . getline(i) )
       endfor
+      return
     endif
-    return
   endif
 
-  if len(css) == 2 && g:prefer_commentstring
+  if (len(css) == 2 && g:prefer_commentstring)
     let mark1 = css[0]
     let mark2 = css[1]
   else
@@ -128,84 +105,102 @@ fun! s:doComment(force_oneline,a,e)
   endif
 
   " has comment start mark and end mark
-  let line = mark1 . getline(a:a)
+  let line = mark1 .g:block_comment_padding . getline(a:a)
   cal setline(a:a,line)
 
-  let line = getline(a:e) . mark2
+  let line = getline(a:e) . g:block_comment_padding . mark2
   cal setline(a:e,line)
 endf
 
 
 
+fun! s:_unComment(m1,m2,a,e)
+  let mark1 = escape( a:m1 , '.*/!' )
+  let mark2 = escape( a:m2 , '.*/!' )
+
+  let line1 = getline(a:a)
+  let line2 = getline(a:e)
+
+  " check if text is mark as begin comment mark and end comment mark
+  if strlen(matchstr( line1 ,'^\s*' . mark1)) > 0
+        \ && strlen(matchstr( line2 , mark2 .'\s*$')) > 0
+
+    " unComment
+    let line1 = getline(a:a)
+    let line = substitute(line1,'^\s*'. mark1 ,'','')
+    cal setline(a:a,line)
+
+    let line2 = getline(a:e)
+    let line = substitute( line2, mark2.'\s*$','','')
+    cal setline(a:e,line)
+    return 1
+  endif
+  return 0
+endf
+
 fun! s:unComment(a,e)
   let cs = &commentstring
   let css = split( cs , '%s' )
+  let mark1 = ''
+  let mark2 = ''
 
-  let [mark1,mark2,oneline_mark] = s:getCommentMarks()
-  if len(css) == 1 
-    if strlen(mark1) > 0 && strlen(mark2) > 0
-      let css = [ mark1 , mark2 ]
-    endif
-  endif
+  let [m1,m2,s1] = s:getCommentMarks()
+  let onlyoneline = strlen(m1)==0 && strlen(m2)==0 
+        \ && (strlen(s1) || len(css)==1)
 
   if len(css) == 2
-    " has comment start mark and end mark
-    let css[0] = escape( css[0] , '.*/' )
-    let css[1] = escape( css[1] , '.*/' )
-    " check if text is mark as begin comment mark and end comment mark
-    if strlen(matchstr( getline(a:a),'^'.css[0])) > 0
-          \ && strlen(matchstr( getline(a:e),css[1].'\s*$')) > 0
-
-      " unComment
-      let line = substitute(getline(a:a),'^'.css[0],'','')
-      cal setline(a:a,line)
-
-      let line = substitute(getline(a:e), css[1].'\s*$','','')
-      cal setline(a:e,line)
-      return 
-    endif
-  endif
-
-
-  " pair comment mark not found , try to uncomment oneline mark
-  if strlen(oneline_mark) > 0
-    let succ = s:ensureOnelineBlock(oneline_mark,a:a,a:e)
+    let succ =  s:_unComment(css[0],css[1],a:a,a:e)
     if succ 
-      for i in range(a:a,a:e)
-        let line = substitute(getline(i),'^\s*'. oneline_mark ,'','')
-        cal setline(i,line)
-      endfor
       return
     endif
   endif
 
-  " single comment mark
-  let succ = s:ensureOnelineBlock(css[0],a:a,a:e)
-  if succ
-    for i in range(a:a,a:e)
-      let line = substitute(getline(i),'^\s*'.css[0],'','')
-      cal setline(i,line)
-    endfor
-    return
+  if strlen(m1) > 0 && strlen(m2) > 0
+    let succ =  s:_unComment(m1,m2,a:a,a:e)
+    if succ 
+      return
+    endif
+  endif
+
+  if g:prefer_commentstring && len(css) == 1
+    " single comment mark
+    let succ = s:ensureOnelineBlock( '^\s*' . css[0] . g:oneline_comment_padding,a:a,a:e)
+    if succ
+      cal s:trimCommentLines( '^\s*' . css[0] . g:oneline_comment_padding , a:a , a:e )
+      return
+    endif
+  endif
+
+  " pair comment mark not found , try to uncomment oneline mark
+  if strlen(s1) > 0
+    let succ = s:ensureOnelineBlock( '^\s*'. s1 . g:oneline_comment_padding ,a:a,a:e)
+    if succ 
+      cal s:trimCommentLines( '^\s*' . s1 . g:oneline_comment_padding , a:a , a:e )
+      return
+    endif
+  endif
+
+  if len(css) == 1
+    " single comment mark
+    let succ = s:ensureOnelineBlock( '^\s*' . css[0] . g:oneline_comment_padding,a:a,a:e)
+    if succ
+      cal s:trimCommentLines( '^\s*' . css[0] . g:oneline_comment_padding , a:a , a:e )
+      return
+    endif
   endif
 endf
-
 
 " should also support comment toggle.
 fun! s:onelineComment(a,e)
   " force oneline comment
-  let [mark1,mark2,oneline_mark] = s:getCommentMarks()
+  let css = split(&commentstring,'%s')
+  let [m1,m2,s1] = s:getCommentMarks()
 
-  " online_mark from 'comments' option is not found.
-  " parse comment mark from 'commentstring'.
-  if strlen(oneline_mark) == 0
-    let css = split(&commentstring,'%s')
-    if len(css) == 1
-      let oneline_mark = css[0]
-    endif
+  if strlen(s1) == 0 && len(css) == 2
+    let mark = css[0]
   endif
 
-  if getline(a:a) =~ '^\s*' . oneline_mark
+  if getline(a:a) =~ '^\s*' . mark
     cal s:unComment(a:a,a:e)
   else
     cal s:doComment(1,a:a,a:e)
