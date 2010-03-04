@@ -211,6 +211,7 @@ fun! s:onelineComment(a,e)
   else
     cal s:doComment(1,a:a,a:e)
   endif
+  exec 'normal ' . a:a . 'GV' . a:e . 'G'
 endf
 
 
