@@ -5,8 +5,8 @@
 "   Author: Cornelius 林佑安 <cornelius.howl@gmail.com>
 "   Date:   四  3/ 4 14:39:34 2010
 "   Github: http://github.com/c9s
+"   Script Name: simplecommenter
 "   Script Type: plugin
-
 
 if !exists('g:prefer_commentstring')
   let g:prefer_commentstring = 1
