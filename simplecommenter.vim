@@ -208,7 +208,7 @@ fun! s:onelineComment(a,e)
 endf
 
 aug PythonCommentFix
-  au filetype python :let g:prefer_commentstring
+  au filetype python :let g:prefer_commentstring = 1
 aug END
 
 com! -range DoComment :cal s:doComment(0,<line1>,<line2>)
