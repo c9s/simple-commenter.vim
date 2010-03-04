@@ -17,7 +17,7 @@ if !exists('g:oneline_comment_padding')
 endif
 
 if !exists('g:block_comment_padding')
-  let g:block_comment_padding = "\n"
+  let g:block_comment_padding = " "
 endif
 
 fun! s:ensureOnelineBlock(pattern,a,e)
@@ -105,11 +105,10 @@ fun! s:doComment(force_oneline,a,e)
   endif
 
   " has comment start mark and end mark
-  let line = mark1 .g:block_comment_padding . getline(a:a)
-  cal setline(a:a,split(line,"\n"))
+  let sep = a:a == a:e ? g:block_comment_padding : ""
 
-  let line = getline(a:e) . g:block_comment_padding . mark2
-  cal setline(a:e,split(line,"\n"))
+  cal setline(a:a,  mark1 . sep . getline(a:a)  )
+  cal setline(a:e, getline(a:e) . sep . mark2 )
 endf
 
 
@@ -126,13 +125,15 @@ fun! s:_unComment(m1,m2,a,e)
   if strlen(matchstr( line1 ,'^\s*' . mark1)) > 0
         \ && strlen(matchstr( line2 , mark2 .'\s*$')) > 0
 
+    let sep = a:a == a:e ? g:block_comment_padding : ""
+
     " unComment
     let line1 = getline(a:a)
-    let line = substitute(line1,'^\s*'. mark1 ,'','')
+    let line = substitute(line1,'^\s*'. mark1 . sep ,'','')
     cal setline(a:a,line)
 
     let line2 = getline(a:e)
-    let line = substitute( line2, mark2.'\s*$','','')
+    let line = substitute( line2, sep . mark2.'\s*$','','')
     cal setline(a:e,line)
     return 1
   endif
@@ -215,7 +216,7 @@ endf
 
 fun! s:init_python()
   let g:prefer_commentstring = 1
-  setlocal comments=s1:\"\"\",ex:\"\"\"
+  setlocal comments+=s1:\"\"\",ex:\"\"\"
 endf
 
 aug PythonCommentFix
