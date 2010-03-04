@@ -223,9 +223,10 @@ fun! s:init_perl()
   setlocal comments=s1:=pod,ex:=cut,:#
 endf
 
-aug PythonCommentFix
+aug CommentFix
   au!
   au filetype python :cal s:init_python()
+  au filetype perl   :cal s:init_perl() 
 aug END
 
 com! -range DoComment :cal s:doComment(0,<line1>,<line2>)
