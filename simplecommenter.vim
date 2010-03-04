@@ -6,8 +6,15 @@
 "   Date:   四  3/ 4 14:39:34 2010
 "   Github: http://github.com/c9s
 "   Script Type: plugin
-"
 
+
+if !exists('g:prefer_commentstring')
+  let g:prefer_commentstring = 1
+endif
+
+if !exists('g:oneline_comment_padding')
+  let g:oneline_comment_padding = ' '
+endif
 
 fun! s:ensureOnelineBlock(mark,a,e)
   let succ = 1
@@ -49,8 +56,11 @@ fun! s:doComment(force_oneline,a,e)
       let css = [ mark1 , mark2 ]
     endif
   endif
+
   if strlen(oneline_mark) > 0
     let oneline_mark = oneline_mark . '%s'
+  elseif strlen(oneline_mark) == 0 && len(css) == 1
+    let oneline_mark = css[0]
   endif
 
   if a:force_oneline && strlen(oneline_mark) > 0 
@@ -73,6 +83,59 @@ fun! s:doComment(force_oneline,a,e)
     endfor
   endif
 endf
+
+fun! s:doComment(force_oneline,a,e)
+  " case:
+  "     oneline comment mark only. (from comments 
+  "             or commentstring)
+  " case: 
+  "     comment mark pair found and oneline comment markonly
+  "
+  " case:
+  "     comment mark pair found only.
+  let cs = &commentstring
+  let css = split( cs , '%s' )
+  let mark1 = ''
+  let mark2 = ''
+
+  let [m1,m2,s1] = s:getCommentMarks()
+
+  let onlyoneline = strlen(m1)==0 && strlen(m2)==0 
+        \ && (strlen(s1) || len(css)==1)
+
+  if a:force_oneline || onlyoneline 
+    let mark = ''
+    if len(css) == 2 && strlen(s1) > 0
+      let mark = s1
+    elseif len(css) == 1
+      let mark = strlen(s1) > 0 ? s1 : css[0]
+      let mark = g:prefer_commentstring ? css[0] : mark
+    endif
+    if strlen(mark) > 0
+      for i in range(a:a,a:e)
+        cal setline(i, mark . ' ' . getline(i) )
+      endfor
+    endif
+    return
+  endif
+
+  if len(css) == 2 && g:prefer_commentstring
+    let mark1 = css[0]
+    let mark2 = css[1]
+  else
+    let mark1 = m1
+    let mark2 = m2
+  endif
+
+  " has comment start mark and end mark
+  let line = mark1 . getline(a:a)
+  cal setline(a:a,line)
+
+  let line = getline(a:e) . mark2
+  cal setline(a:e,line)
+endf
+
+
 
 fun! s:unComment(a,e)
   let cs = &commentstring
@@ -132,9 +195,14 @@ endf
 fun! s:onelineComment(a,e)
   " force oneline comment
   let [mark1,mark2,oneline_mark] = s:getCommentMarks()
+
+  " online_mark from 'comments' option is not found.
+  " parse comment mark from 'commentstring'.
   if strlen(oneline_mark) == 0
-    echoerr "Comment String Error"
-    return
+    let css = split(&commentstring,'%s')
+    if len(css) == 1
+      let oneline_mark = css[0]
+    endif
   endif
 
   if getline(a:a) =~ '^\s*' . oneline_mark
