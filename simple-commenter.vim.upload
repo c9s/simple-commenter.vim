@@ -1,0 +1,45 @@
+script_name:
+
+    simplecommenter
+
+script_file:
+
+    /Users/c9s/mygit/simple-commenter.vim/simplecommenter.vim
+
+script_type:
+
+    utility
+
+vim_version:
+
+    7.2
+
+script_id:
+
+    3005
+
+script_version: 
+
+    0.1
+
+summary:
+
+    simple commenter
+
+description:
+
+    quite simple, but support most language (perl,python,ruby,c,javascript ... etc)
+
+    See on github:
+    http://github.com/c9s/simplecommenter.vim
+
+install_details:
+
+    $ vimana i simplecommenter.vim 
+
+    See Vimana on github:  http://github.com/c9s/vimana
+
+    Or copy simplecommenter.vim to your ~/.vim/plugin/
+
+version_note:
+
