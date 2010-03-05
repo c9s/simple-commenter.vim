@@ -7,6 +7,10 @@
 "   Github: http://github.com/c9s
 "   Script Name: simplecommenter
 "   Script Type: plugin
+if exists('loaded_scommenter') && ! exists('force_reload')
+  finish
+endif
+let loaded_scommenter = 1
 
 fun! s:def(name,value)
   if ! exists(a:name)
