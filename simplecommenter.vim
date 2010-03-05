@@ -22,7 +22,7 @@ cal s:def('g:scomment_reselect',1)
 cal s:def('g:scomment_default_mapping',1)
 
 fun! s:select(a,e)
-  if g:scomment_reselect
+  if g:scomment_reselect && a:a != a:e
     normal gv
   endif
 endf
