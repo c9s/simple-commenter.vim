@@ -8,33 +8,24 @@
 "   Script Name: simplecommenter
 "   Script Type: plugin
 
-if !exists('g:prefer_commentstring')
-  let g:prefer_commentstring = 1
-endif
+fun! s:def(name,value)
+  if ! exists(a:name)
+    let {a:name} = a:value
+  endif
+endf
 
-if !exists('g:oneline_comment_padding')
-  let g:oneline_comment_padding = ' '
-endif
+cal s:def('g:oneline_comment_padding',' ')
+cal s:def('g:block_comment_padding', ' ')
 
-if !exists('g:block_comment_padding')
-  let g:block_comment_padding = " "
-endif
-
-if !exists('g:scomment_reselect')
-  let g:scomment_reselect = 1
-endif
-
-if !exists('g:scomment_default_mapping')
-  let g:scomment_default_mapping = 1
-endif
+cal s:def('g:scomment_prefer_commentstring', 1)
+cal s:def('g:scomment_reselect',1)
+cal s:def('g:scomment_default_mapping',1)
 
 fun! s:select(a,e)
   if g:scomment_reselect
     normal gv
   endif
 endf
-
-
 
 fun! s:ensureOnelineBlock(pattern,a,e)
   let succ = 1
@@ -96,13 +87,13 @@ fun! s:doComment(force_oneline,a,e)
   let onlyblock   = strlen(m1)>0 && strlen(m2)>0
         \ && (strlen(s1)==0 || len(css)==2)
 
-  if a:force_oneline || onlyoneline 
+  if a:force_oneline || onlyoneline
     let mark = ''
     if len(css) == 2 && strlen(s1) > 0
       let mark = s1
     elseif len(css) == 1
       let mark = strlen(s1) > 0 ? s1 : css[0]
-      let mark = g:prefer_commentstring ? css[0] : mark
+      let mark = g:scomment_prefer_commentstring ? css[0] : mark
     endif
     if strlen(mark) > 0
       for i in range(a:a,a:e)
@@ -113,7 +104,7 @@ fun! s:doComment(force_oneline,a,e)
     endif
   endif
 
-  if (len(css) == 2 && g:prefer_commentstring)
+  if (len(css) == 2 && g:scomment_prefer_commentstring)
     let mark1 = css[0]
     let mark2 = css[1]
   else
@@ -184,7 +175,7 @@ fun! s:unComment(a,e)
     endif
   endif
 
-  if g:prefer_commentstring && len(css) == 1
+  if g:scomment_prefer_commentstring && len(css) == 1
     " single comment mark
     let succ = s:ensureOnelineBlock( '^\s*' . s:escape_cm(css[0]) . g:oneline_comment_padding,a:a,a:e)
     if succ
@@ -239,7 +230,7 @@ endf
 
 
 fun! s:init_python()
-  let g:prefer_commentstring = 1
+  let g:scomment_prefer_commentstring = 1
   setlocal comments+=s1:\"\"\",ex:\"\"\"
 endf
 
