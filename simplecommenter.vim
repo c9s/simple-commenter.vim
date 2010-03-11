@@ -10,6 +10,10 @@
 if exists('loaded_scommenter') && ! exists('force_reload')
   finish
 endif
+if exists('force_reload')
+  redraw
+  echo "Force Reloading : SimpleCommenter"
+endif
 let loaded_scommenter = 1
 
 fun! s:def(name,value)
@@ -248,12 +252,17 @@ aug CommentFix
   au filetype perl   :cal s:init_perl() 
 aug END
 
+
 com! -range DoComment :cal s:doComment(0,<line1>,<line2>)
 com! -range UnComment :cal s:unComment(<line1>,<line2>)
 com! -range OneLineComment :cal s:onelineComment(<line1>,<line2>)
 
+map <silent> <Plug>(do-comment)  :DoComment<CR>
+map <silent> <Plug>(un-comment)  :UnComment<CR>
+map <silent> <Plug>(one-line-comment) :OneLineComment<CR>
+
 if g:scomment_default_mapping
-  map <silent>   ,c    :DoComment<CR>
-  map <silent>   ,C    :UnComment<CR>
-  map <silent>   ,,    :OneLineComment<CR>
+  map <silent>   ,c    <Plug>(do-comment)
+  map <silent>   ,C    <Plug>(un-comment)
+  map <silent>   ,,    <Plug>(one-line-comment)
 endif
