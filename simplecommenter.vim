@@ -22,12 +22,6 @@ fun! s:def(name,value)
   endif
 endf
 
-cal s:def('g:oneline_comment_padding',' ')
-cal s:def('g:block_comment_padding', ' ')
-
-cal s:def('g:scomment_prefer_commentstring', 1)
-cal s:def('g:scomment_reselect',1)
-cal s:def('g:scomment_default_mapping',1)
 
 fun! s:select(a,e)
   if g:scomment_reselect && a:a != a:e
@@ -237,6 +231,14 @@ endf
 
 
 
+cal s:def('g:oneline_comment_padding',' ')
+cal s:def('g:block_comment_padding', ' ')
+
+cal s:def('g:scomment_prefer_commentstring', 1)
+cal s:def('g:scomment_reselect',1)
+cal s:def('g:scomment_default_mapping',1)
+
+
 fun! s:init_python()
   let g:scomment_prefer_commentstring = 1
   setlocal comments+=s1:\"\"\",ex:\"\"\"
@@ -252,6 +254,8 @@ aug CommentFix
   au filetype perl   :cal s:init_perl() 
 aug END
 
+com!        CommentReselectEnable    :let g:scomment_reselect = 1 | echo "Comment reselecting On"
+com!        CommentReselectDisable   :let g:scomment_reselect = 0 | echo "Comment reselecting Off"
 
 com! -range DoComment :cal s:doComment(0,<line1>,<line2>)
 com! -range UnComment :cal s:unComment(<line1>,<line2>)
@@ -266,3 +270,4 @@ if g:scomment_default_mapping
   map <silent>   ,C    <Plug>(un-comment)
   map <silent>   ,,    <Plug>(one-line-comment)
 endif
+
