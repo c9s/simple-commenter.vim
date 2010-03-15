@@ -64,6 +64,25 @@ fun! s:getCommentMarks()
       let oneline_mark = strpart(c,1) . ' '
     endif
   endfor
+
+  " some small patch
+  let ft = &filetype
+  if !g:scomment_prefer_commentstring && strlen(oneline_mark) == 0 
+    if ft == 'vim'
+      let oneline_mark = '" '
+    elseif ft = 'php'
+      let oneline_mark = '// '
+    endif
+  endif
+  if strlen(mark1) == 0 && strlen(mark2) == 0
+    if ft == 'python'
+      let [ mark1 , mark2 ] = [ '"""' ,'"""' ]
+    elseif ft == 'perl'
+      let [ mark1 , mark2 ] = [ '=pod' ,'=cut' ]
+    elseif ft == 'php'
+      let [ mark1 , mark2 ] = [ '/*' , '*/' ]
+    endif
+  endif
   return [ mark1 , mark2 , oneline_mark ]
 endf
 
@@ -119,6 +138,7 @@ fun! s:doComment(force_oneline,a,e)
 
   cal setline(a:a,  mark1 . sep . getline(a:a)  )
   cal setline(a:e, getline(a:e) . sep . mark2 )
+  "cal s:select(a:a,a:e)
 endf
 
 
@@ -270,4 +290,3 @@ if g:scomment_default_mapping
   map <silent>   ,C    <Plug>(un-comment)
   map <silent>   ,,    <Plug>(one-line-comment)
 endif
-
