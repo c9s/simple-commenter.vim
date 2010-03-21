@@ -10,10 +10,6 @@
 if exists('loaded_scommenter') && ! exists('force_reload')
   finish
 endif
-if exists('force_reload')
-  redraw
-  echo "Force Reloading : SimpleCommenter"
-endif
 let loaded_scommenter = 1
 
 fun! s:def(name,value)
@@ -140,8 +136,6 @@ fun! s:doComment(force_oneline,a,e)
   cal setline(a:e, getline(a:e) . sep . mark2 )
   "cal s:select(a:a,a:e)
 endf
-
-
 
 fun! s:_unComment(m1,m2,a,e)
 
