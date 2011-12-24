@@ -121,7 +121,7 @@ fun! s:doComment(force_oneline,a,e)
     endif
   endif
 
-  if (len(css) == 2 && g:scomment_prefer_commentstring)
+  if (len(css) == 2 && g:scomment_prefer_commentstring && &filetype != 'python')
     let mark1 = css[0]
     let mark2 = css[1]
   else
@@ -255,7 +255,7 @@ cal s:def('g:scomment_default_mapping',1)
 
 fun! s:init_python()
   let g:scomment_prefer_commentstring = 1
-  setlocal comments+=s1:\"\"\",ex:\"\"\"
+  setlocal comments+=s1:\"\"\",ex:\"\"\",:#
 endf
 
 fun! s:init_perl()
