@@ -253,6 +253,11 @@ cal s:def('g:scomment_reselect',1)
 cal s:def('g:scomment_default_mapping',1)
 
 
+fun! s:init_pov()
+  let g:scomment_prefer_commentstring = 1
+  setlocal comments+=s1:/*,ex:*/,://
+endf
+
 fun! s:init_python()
   let g:scomment_prefer_commentstring = 1
   setlocal comments+=s1:\"\"\",ex:\"\"\",:#
@@ -264,6 +269,7 @@ endf
 
 aug CommentFix
   au!
+  au filetype pov :cal s:init_pov()
   au filetype python :cal s:init_python()
   au filetype perl   :cal s:init_perl() 
 aug END
