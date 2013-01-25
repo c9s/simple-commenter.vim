@@ -61,12 +61,24 @@ fun! s:getCommentMarks()
     endif
   endfor
 
+  if mark1 =~ 'XCOMM'
+    let mark1 = '/*'
+  endif
+  if mark2 =~ 'XCOMM'
+    let mark2 = '*/'
+  endif
+  if oneline_mark =~ 'XCOMM'
+    let oneline_mark = '//'
+  endif
+
   " some small patch
   let ft = &filetype
   if !g:scomment_prefer_commentstring && strlen(oneline_mark) == 0 
     if ft == 'vim'
       let oneline_mark = '" '
-    elseif ft = 'php'
+    elseif ft == 'sh'
+      let oneline_mark = '# '
+    elseif ft == 'php' || ft == 'go'
       let oneline_mark = '// '
     endif
   endif
@@ -75,7 +87,7 @@ fun! s:getCommentMarks()
       let [ mark1 , mark2 ] = [ '"""' ,'"""' ]
     elseif ft == 'perl'
       let [ mark1 , mark2 ] = [ '=pod' ,'=cut' ]
-    elseif ft == 'php'
+    elseif ft == 'php' || ft == 'go'
       let [ mark1 , mark2 ] = [ '/*' , '*/' ]
     endif
   endif
@@ -112,6 +124,7 @@ fun! s:doComment(force_oneline,a,e)
       let mark = strlen(s1) > 0 ? s1 : css[0]
       let mark = g:scomment_prefer_commentstring ? css[0] : mark
     endif
+
     if strlen(mark) > 0
       for i in range(a:a,a:e)
         cal setline(i, mark . g:oneline_comment_padding . getline(i) )
